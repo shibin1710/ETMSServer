@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
 #apt-get install libmongoc
-mount -o remount,rw /
+sudo mount -o remount,rw /
 apt-get install libmongoc-dev
