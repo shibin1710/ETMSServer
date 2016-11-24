@@ -2,4 +2,5 @@
 #apt-get install libmongoc
 #sudo apt-get update
 #sudo apt-get install libmongoc-dev
+/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
 brew install mongo-c
