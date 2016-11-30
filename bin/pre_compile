@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
 #apt-get install sudo
 #sudo apt-get update
-
-#apt-get install libmongoc-dev
+apt-get install libmongoc-dev
