@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
 #apt-get install sudo
 #sudo apt-get update
+rm -f  /var/lib/apt/lists/lock
+rm -f /var/lib/dpkg/lock
 apt-get install libmongoc-dev
