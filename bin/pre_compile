@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
-#apt-get install sudo
-#sudo apt-get update
+/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+brew update
+brew install mongodb --with-openssl
+mkdir -p /data/db
 apt-get install libmongoc-dev
