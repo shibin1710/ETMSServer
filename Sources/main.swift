@@ -11,18 +11,37 @@ var routes = Routes()
 routes.add(method: .post, uri: "/signup", handler: {
     request, response in
     
-    let username = request.param(name: "username")
-    let password = request.param(name: "password")
-    
-    
-    //    let client = try! MongoClient(uri: "mongodb://localhost")
+    guard let email = request.param(name: "email"), let password = request.param(name: "password"), let name = request.param(name: "name"), let phoneNumber = request.param(name: "phoneNumber") else {
+        
+        let errorJSON = ["code" : "1000", "description" : "Invalid request."]
+        let responseJSON = ["success" : "false","error" : errorJSON] as [String : Any]
+        
+        do {
+            try response.setBody(json: responseJSON)
+        } catch {
+            print("Error : ",error)
+        }
+        
+        response.completed()
+        return
+    }
+
     let client = try! MongoClient(uri: "mongodb://shibin:shibin@ds151127.mlab.com:51127/transport")
-    
-    
     let db = client.getDatabase(name: "transport")
     
     // define collection
     guard let collection = db.getCollection(name: "credentials") else {
+        
+        let errorJSON = ["code" : "1001", "description" : "Error connecting to database."]
+        let responseJSON = ["success" : "false","error" : errorJSON] as [String : Any]
+        
+        do {
+            try response.setBody(json: responseJSON)
+        } catch {
+            print("Error : ",error)
+        }
+        
+        response.completed()
         return
     }
     
@@ -34,46 +53,68 @@ routes.add(method: .post, uri: "/signup", handler: {
         client.close()
     }
     
-    
-    
-    let filterBSON = try! BSON(json: "{\"username\" : \"\(username!)\"}")
-    let result = collection.find(query:filterBSON)
+    let filterBSON = try! BSON(json: "{\"email\" : \"\(email)\"}")
+    let filterResults = collection.find(query:filterBSON)
     
     // Initialize empty array to receive formatted results
     var responseData = [String]()
     
-    for x in result! {
-        responseData.append(x.asString)
+    for result in filterResults! {
+        responseData.append(result.asString)
     }
     
-    // return a formatted JSON array.
-    //    let responseJSON = "{\"data\":[\(arr.joined(separator: ","))]}"
-    
-    
     guard responseData.count == 0 else {
-        response.appendBody(string: "{\"success\":false}")
+        let errorJSON = ["code" : "1002", "description" : "User already exist."]
+        let responseJSON = ["success" : "false","error" : errorJSON] as [String : Any]
+        
+        do {
+            try response.setBody(json: responseJSON)
+        } catch {
+            print("Error : ",error)
+        }
+        
         response.completed()
         return
     }
     
     
     let bson = BSON()
-    bson.append(key: "username", string: username!)
-    bson.append(key: "password", string: password!)
+    bson.append(key: "email", string: email)
+    bson.append(key: "password", string: password)
+    bson.append(key: "name", string: name)
+    bson.append(key: "phoneNumber", string: phoneNumber)
+
+    let status:MongoResult = collection.insert(document: bson)
     
-    let status = collection.insert(document: bson)
+    switch status {
+        
+        case .success:
+        
+            let userDetailJSON = ["name" : name, "email" : email, "phoneNumber" : phoneNumber]
+            let responseJSON = ["success" : "true","responseDictionary" : userDetailJSON] as [String : Any]
+        
+            do {
+                try response.setBody(json: responseJSON)
+            } catch {
+                print("Error : ",error)
+            }
+        
+            response.completed()
     
-    response.appendBody(string: "{\"success\":true}")
-    
-    
-    //    if status ==    {
-    //        response.appendBody(string: "{\"success\":true}")
-    //    } else {
-    //        response.appendBody(string: "{\"success\":false}")
-    //
-    //    }
-    
-    response.completed()
+        default:
+        
+            let errorJSON = ["code" : "1003", "description" : "Error while inserting to database."]
+            let responseJSON = ["success" : "false","error" : errorJSON] as [String : Any]
+        
+            do {
+                try response.setBody(json: responseJSON)
+            } catch {
+                print("Error : ",error)
+            }
+        
+            response.completed()
+            return
+        }
     }
 )
 
